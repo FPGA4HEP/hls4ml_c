@@ -45,6 +45,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #define DATA_SIZE_OUT N_OUTPUTS
 
+#define STRINGIFY2(var) #var
+#define STRINGIFY(var) STRINGIFY2(var)
+
 int main(int argc, char** argv)
 {
 
@@ -111,16 +114,18 @@ int main(int argc, char** argv)
     krnl_aws_hls4ml.setArg(narg++, buffer_output);
 
     //load input data from text file
-    std::ifstream fin("HLS4ML_DATA_DIR/tb_input_features.dat");
+    std::ifstream fin(STRINGIFY(HLS4ML_DATA_DIR)"/tb_input_features.dat");
     //load predictions from text file
-    std::ifstream fpr("HLS4ML_DATA_DIR/tb_output_predictions.dat");
+    std::ifstream fpr(STRINGIFY(HLS4ML_DATA_DIR)"/tb_output_predictions.dat");
   
     std::string iline;
     std::string pline;
     int e = 0;
     bool hit_end = true;
     bool valid_data = true;
-    if (!fin.is_open() || !fpr.is_open()) {
+    std::cout<<"Check: ";
+    std::cout << STRINGIFY(HLS4ML_DATA_DIR)"/tb_output_predictions.dat"<<std::endl;
+    if (!(fin.is_open()) || !(fpr.is_open())) {
         std::cout << "Unable to open input/predictions file, using random input" << std::endl;
         valid_data = false;
     }
@@ -178,12 +183,14 @@ int main(int argc, char** argv)
         // Copy Result from Device Global Memory to Host Local Memory
         q.enqueueMigrateMemObjects({buffer_output},CL_MIGRATE_MEM_OBJECT_HOST);
         q.finish();
-        std::cout<<"Predictions: ";
-        for (int j = 0 ; j < STREAMSIZE ; j++){
-            for (int k = 0 ; k < DATA_SIZE_OUT ; k++){
-    	        std::cout << pr[j*DATA_SIZE_OUT + k] << " ";
+        if (valid_data) {
+            std::cout<<"Predictions: ";
+            for (int j = 0 ; j < STREAMSIZE ; j++){
+                for (int k = 0 ; k < DATA_SIZE_OUT ; k++){
+        	        std::cout << pr[j*DATA_SIZE_OUT + k] << " ";
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
         std::cout<<"Quantized predictions: ";
         for (int j = 0 ; j < STREAMSIZE ; j++){
