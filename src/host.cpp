@@ -121,7 +121,7 @@ int main(int argc, char** argv)
     std::string iline;
     std::string pline;
     int e = 0;
-    bool hit_end = true;
+    bool hit_end = false;
     bool valid_data = true;
     std::cout<<"Check: ";
     std::cout << STRINGIFY(HLS4ML_DATA_DIR)"/tb_output_predictions.dat"<<std::endl;
@@ -135,10 +135,10 @@ int main(int argc, char** argv)
     for (int i = 0 ; i < nevents ; i++){
         std::vector<float> pr;
         for (int istream = 0; istream < STREAMSIZE; istream++) {
-  	    if (valid_data && e<nevents && !hit_end){
+  	    if (valid_data && !hit_end){
                 if(std::getline(fin,iline) && std::getline(fpr,pline)) {
-      	        if (e%5000==0) std::cout << "Processing event " << e << std::endl;
-      	        e++;
+      	            if (e%1000==0) std::cout << "Processing event " << e << std::endl;
+      	            e++;
                     char* cstr=const_cast<char*>(iline.c_str());
                     char* current;
                     std::vector<float> in;
@@ -148,7 +148,6 @@ int main(int argc, char** argv)
                         current=strtok(NULL," ");
                     }
                     cstr=const_cast<char*>(pline.c_str());
-                    pr.clear();
                     current=strtok(cstr," ");
                     while(current!=NULL){
                         pr.push_back(atof(current));
@@ -157,7 +156,9 @@ int main(int argc, char** argv)
                     for (int j = 0; j < DATA_SIZE_IN; j++) {
                         source_in[istream*DATA_SIZE_IN+j] = (data_t)in[j];
                     }
-                    istream++;
+                    for(int j = 0 ; j < DATA_SIZE_OUT ; j++){
+                        source_hw_results[istream*DATA_SIZE_OUT+j] = 0;
+                    }
                 } else {
                     hit_end = true;
                 }
@@ -183,14 +184,14 @@ int main(int argc, char** argv)
         // Copy Result from Device Global Memory to Host Local Memory
         q.enqueueMigrateMemObjects({buffer_output},CL_MIGRATE_MEM_OBJECT_HOST);
         q.finish();
-        if (valid_data) {
+        if (valid_data && !hit_end) {
             std::cout<<"Predictions: ";
             for (int j = 0 ; j < STREAMSIZE ; j++){
                 for (int k = 0 ; k < DATA_SIZE_OUT ; k++){
         	        std::cout << pr[j*DATA_SIZE_OUT + k] << " ";
                 }
-                std::cout << std::endl;
             }
+            std::cout << std::endl;
         }
         std::cout<<"Quantized predictions: ";
         for (int j = 0 ; j < STREAMSIZE ; j++){
@@ -198,9 +199,9 @@ int main(int argc, char** argv)
     	        std::cout << source_hw_results[j*DATA_SIZE_OUT + k] << " ";
                 fout << source_hw_results[j*DATA_SIZE_OUT + k] << " "; 
             }
-            std::cout << std::endl;
             fout << "\n";
         }
+        std::cout << std::endl;
         std::cout<<"---- END EVENT "<<i+1<<" ----"<<std::endl;
     }
 // OPENCL HOST CODE AREA END

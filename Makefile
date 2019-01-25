@@ -20,7 +20,7 @@ include $(COMMON_REPO)/libs/opencl/opencl.mk
 # Host Application
 host_SRCS=./src/host.cpp $(xcl2_SRCS)
 host_HDRS=$(xcl2_HDRS)
-host_CXXFLAGS=-I./src/ -I$(HLS4ML_BASE)/nnet_utils/ -I$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/firmware/ $(xcl2_CXXFLAGS) $(opencl_CXXFLAGS) -std=c++11 -DIS_$(HLS4ML_PROJ_TYPE) -DHLS4ML_DATA_DIR=$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/tb_data/ -std=c++11
+host_CXXFLAGS=-I./src/ -I$(HLS4ML_BASE)/nnet_utils/ -I$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/firmware/ $(xcl2_CXXFLAGS) $(opencl_CXXFLAGS) -DIS_$(HLS4ML_PROJ_TYPE) -DHLS4ML_DATA_DIR=$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/tb_data/ -std=c++11
 host_LDFLAGS=$(opencl_LDFLAGS) -I$(XILINX_VIVADO)/include/ -I$(XILINX_SDACCEL)/include/ -Wno-unknown-pragmas
 
 # aws_hls4ml Kernels
