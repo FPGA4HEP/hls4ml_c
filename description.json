@@ -1,0 +1,41 @@
+{
+    "runtime": ["OpenCL"],
+    "example": "HLS4ML on AWS (HLS C/C++ Kernel)",
+    "overview": [
+	"This is an example of wrapping an hls4ml project for use on AWS"
+    ], 
+    "key_concepts": [ "HLS C Kernel", "OpenCL Host APIs"],
+    "keywords": ["gmem", "bundle", "#pragma HLS INTERFACE", "m_axi", "s_axi4lite"],
+    "os": [
+        "Linux"
+    ],
+    "libs": [
+        "xcl2"
+    ],
+    "em_cmd": "./host",
+    "hw_cmd": "../../../utility/nimbix/nimbix-run.py -- ./host",
+    "containers" : [ 
+     {
+      "name" : "aws_hls4ml",
+      "accelerators": [
+          {          
+            "name": "aws_hls4ml", 
+            "location": "src/aws_hls4ml.cpp"
+          }
+        ]
+      }
+    ],
+    "contributors" : [
+        {
+            "group": "hls4ml",
+            "url" : "https://hls-fpga-machine-learning.github.io/hls4ml/"
+        }
+    ],
+    "revision" : [
+        {
+            "date" : "MAY2018",
+            "version": "1.0",
+            "description": "Initial Release"
+        }
+    ]
+}
