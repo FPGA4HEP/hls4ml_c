@@ -52,7 +52,9 @@ int main(int argc, char** argv)
 {
 
     int nevents = 1;
+    std::string datadir = STRINGIFY(HLS4ML_DATA_DIR);
     if (argc > 1) nevents = atoi(argv[1]);
+    if (argc > 2) datadir = argv[2];
 
     size_t vector_size_in_bytes = sizeof(data_t) * DATA_SIZE_IN * STREAMSIZE;
     size_t vector_size_out_bytes = sizeof(data_t) * DATA_SIZE_OUT * STREAMSIZE;
@@ -114,9 +116,9 @@ int main(int argc, char** argv)
     krnl_aws_hls4ml.setArg(narg++, buffer_output);
 
     //load input data from text file
-    std::ifstream fin(STRINGIFY(HLS4ML_DATA_DIR)"/tb_input_features.dat");
+    std::ifstream fin(datadir+"/tb_input_features.dat");
     //load predictions from text file
-    std::ifstream fpr(STRINGIFY(HLS4ML_DATA_DIR)"/tb_output_predictions.dat");
+    std::ifstream fpr(datadir+"/tb_output_predictions.dat");
   
     std::string iline;
     std::string pline;
@@ -124,7 +126,7 @@ int main(int argc, char** argv)
     bool hit_end = false;
     bool valid_data = true;
     std::cout<<"Check: ";
-    std::cout << STRINGIFY(HLS4ML_DATA_DIR)"/tb_output_predictions.dat"<<std::endl;
+    std::cout << datadir << "/tb_output_predictions.dat"<<std::endl;
     if (!(fin.is_open()) || !(fpr.is_open())) {
         std::cout << "Unable to open input/predictions file, using random input" << std::endl;
         valid_data = false;
