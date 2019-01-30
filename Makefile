@@ -3,8 +3,8 @@ COMMON_REPO := /home/centos/src/project_data/aws-fpga/SDAccel/examples/xilinx/
 
 #--v--v--
 #these need to be set by the user for their specific installation
-HLS4ML_BASE := /home/centos/hls4ml
-HLS4ML_PROJECT := my-hls-test-1layer
+HLS4ML_BASE := /home/centos/fpga4hep/hls4ml
+HLS4ML_PROJECT := my-hls-test-3layer
 HLS4ML_NAME := myproject
 HLS4ML_PROJ_TYPE := DENSE
 #possible options are: DENSE, CONV1D
@@ -25,7 +25,7 @@ host_LDFLAGS=$(opencl_LDFLAGS) -I$(XILINX_VIVADO)/include/ -I$(XILINX_SDACCEL)/i
 
 # aws_hls4ml Kernels
 aws_hls4ml_SRCS=./src/aws_hls4ml.cpp $(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/firmware/$(HLS4ML_NAME).cpp
-aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=$(HLS4ML_NAME) -DIS_$(HLS4ML_PROJ_TYPE) -I./src/ -I$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/firmware/ -I$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/firmware/weights -I$(HLS4ML_BASE)/nnet_utils/
+aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=$(HLS4ML_NAME) -DIS_$(HLS4ML_PROJ_TYPE) -I./src/ -I$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/firmware/ -I$(HLS4ML_BASE)/keras-to-hls/$(HLS4ML_PROJECT)/firmware/weights -I$(HLS4ML_BASE)/nnet_utils/ --xp "prop:solution.hls_pre_tcl=./config.tcl"
 
 EXES=host
 XCLBINS=aws_hls4ml
