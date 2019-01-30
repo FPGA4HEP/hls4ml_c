@@ -1,5 +1,5 @@
 #include "ap_fixed.h"
 
-#define STREAMSIZE 32
+#define STREAMSIZE 1
 
-typedef ap_fixed<32,8> data_t;
+typedef ap_fixed<16,6> data_t;
