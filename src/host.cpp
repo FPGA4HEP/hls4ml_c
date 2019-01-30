@@ -31,6 +31,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <chrono>
+typedef std::chrono::high_resolution_clock Clock;
 
 #include "xcl2.hpp"
 #include <vector>
@@ -134,6 +136,11 @@ int main(int argc, char** argv)
     std::ofstream fout;
     fout.open("tb_output_data.dat");
 
+    auto t1 = Clock::now();
+    auto t2 = Clock::now();
+    auto t3 = Clock::now();
+    auto t4 = Clock::now();
+
     for (int i = 0 ; i < nevents ; i++){
         std::vector<float> pr;
         for (int istream = 0; istream < STREAMSIZE; istream++) {
@@ -177,15 +184,24 @@ int main(int argc, char** argv)
             }
         }
     
+        t1 = Clock::now();
         // Copy input data to device global memory
         q.enqueueMigrateMemObjects(inBufVec,0/* 0 means from host*/);
+        t2 = Clock::now();
         // Launch the Kernel
         // For HLS kernels global and local size is always (1,1,1). So, it is recommended
         // to always use enqueueTask() for invoking HLS kernel
         q.enqueueTask(krnl_aws_hls4ml);
+        t3 = Clock::now();
         // Copy Result from Device Global Memory to Host Local Memory
         q.enqueueMigrateMemObjects({buffer_output},CL_MIGRATE_MEM_OBJECT_HOST);
         q.finish();
+        t4 = Clock::now();
+        std::cout << "Total Time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t1).count() << " ns" << std::endl;
+        std::cout << "\tInput Time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << std::endl;
+        std::cout << "\tKernel Execution Time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count() << " ns" << std::endl;
+        std::cout << "\tOutput Time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t3).count() << " ns" << std::endl;
+
         if (valid_data && !hit_end) {
             std::cout<<"Predictions: ";
             for (int j = 0 ; j < STREAMSIZE ; j++){
