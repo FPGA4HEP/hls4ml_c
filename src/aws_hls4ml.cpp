@@ -31,7 +31,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Description:
     HLS pragmas can be used to optimize the design : improve throughput, reduce latency and 
     device resource utilization of the resulting RTL code
-    This is vector addition example to demonstrate how HLS optimizations are used in kernel. 
+    This is a wrapper to be used with an hls4ml project to enable proper handling by SDAccel
 *******************************************************************************/
 
 #define PROJ_HDR <MYPROJ.h>
@@ -41,7 +41,7 @@ Description:
 #include "kernel_params.h"
 
 /*
-    Vector Addition Kernel Implementation 
+    HLS4ML Kernel Implementation 
     Arguments:
         in    (input)     --> Input Vector
         out   (output)    --> Output Vector
