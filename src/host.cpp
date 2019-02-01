@@ -181,7 +181,7 @@ int main(int argc, char** argv)
         // to always use enqueueTask() for invoking HLS kernel
         q.enqueueTask(krnl_aws_hls4ml);
         // Copy Result from Device Global Memory to Host Local Memory
-        q.enqueueMigrateMemObjects({buffer_output},CL_MIGRATE_MEM_OBJECT_HOST);
+        q.enqueueMigrateMemObjects(outBufVec,CL_MIGRATE_MEM_OBJECT_HOST);
         // Check for any errors from the command queue
         q.finish();
         t2 = Clock::now();
