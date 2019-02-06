@@ -31,25 +31,24 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Description:
     HLS pragmas can be used to optimize the design : improve throughput, reduce latency and 
     device resource utilization of the resulting RTL code
-    This is vector addition example to demonstrate how HLS optimizations are used in kernel. 
+    This is a wrapper to be used with an hls4ml project to enable proper handling by SDAccel
 *******************************************************************************/
 
 #define PROJ_HDR <MYPROJ.h>
 
-#include <parameters.h>
 #include PROJ_HDR
 #include "kernel_params.h"
 
 /*
-    Vector Addition Kernel Implementation 
+    HLS4ML Kernel Implementation 
     Arguments:
         in    (input)     --> Input Vector
         out   (output)    --> Output Vector
    */
 extern "C" {
 void aws_hls4ml(
-        const input_t *in, // Read-Only Vector
-        result_t *out       // Output Result
+        const data_t *in, // Read-Only Vector
+        data_t *out       // Output Result
         )
 {
 // SDAccel kernel must have one and only one s_axilite interface which will be used by host application to configure the kernel.
@@ -84,7 +83,7 @@ void aws_hls4ml(
     #ifdef IS_DENSE
         for (int j = 0; j < N_INPUTS; j++) {
 #pragma HLS LOOP UNROLL
-            in_buf[i][j] = in[i*N_INPUTS+j];
+            in_buf[i][j] = (input_t)in[i*N_INPUTS+j];
         }
     #endif
     #ifdef IS_CONV1D
@@ -92,7 +91,7 @@ void aws_hls4ml(
 #pragma HLS LOOP UNROLL
             for (int k = 0; k < N_CHAN; k++) {
 #pragma HLS LOOP UNROLL
-                in_buf[i][j] = in[i*Y_INPUTS*N_CHAN+j*N_CHAN+k];
+                in_buf[i][j] = (input_t)in[i*Y_INPUTS*N_CHAN+j*N_CHAN+k];
             }
         }
     #endif
@@ -109,7 +108,7 @@ void aws_hls4ml(
 #pragma HLS LOOP UNROLL
         for (int j = 0; j < N_OUTPUTS; j++) {
 #pragma HLS LOOP UNROLL
-            out[i*N_OUTPUTS+j] = out_buf[i][j];
+            out[i*N_OUTPUTS+j] = (data_t)out_buf[i][j];
         }
     }
 
