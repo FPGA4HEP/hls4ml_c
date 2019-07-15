@@ -3,8 +3,8 @@ COMMON_REPO := /home/centos/src/project_data/aws-fpga/SDAccel/examples/xilinx/
 
 #--v--v--
 #these need to be set by the user for their specific installation
-HLS4ML_BASE := /home/centos/fpga4hep/hls4ml
-HLS4ML_PROJECT := my-hls-test-3layer
+HLS4ML_BASE := /home/centos/hls4ml
+HLS4ML_PROJECT := my-hls-test-$${FAVOURITEMODEL}
 HLS4ML_NAME := myproject
 HLS4ML_PROJ_TYPE := DENSE
 #possible options are: DENSE, CONV1D
