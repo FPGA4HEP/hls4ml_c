@@ -69,21 +69,21 @@ void aws_hls4ml(
 //necessary for hls4ml kernel, not used
 
 #ifdef IS_DENSE
-    input_t in_buf[STREAMSIZE][N_INPUTS];
+    input_t in_buf[STREAMSIZE][DATA_SIZE_IN];
 #endif
 #ifdef IS_CONV1D
     input_t in_buf[STREAMSIZE][Y_INPUTS][N_CHAN];
 #endif
-    result_t out_buf[STREAMSIZE][N_OUTPUTS];
+    result_t out_buf[STREAMSIZE][DATA_SIZE_OUT];
 //these will get partitioned properly in the hls4ml code
 
 //getting data from axi stream and formatting properly
     for (int i = 0; i < STREAMSIZE; i++) {
 #pragma HLS LOOP UNROLL
     #ifdef IS_DENSE
-        for (int j = 0; j < N_INPUTS; j++) {
+        for (int j = 0; j < DATA_SIZE_IN; j++) {
 #pragma HLS LOOP UNROLL
-            in_buf[i][j] = (input_t)in[i*N_INPUTS+j];
+            in_buf[i][j] = (input_t)in[i*DATA_SIZE_IN+j];
         }
     #endif
     #ifdef IS_CONV1D
@@ -106,9 +106,9 @@ void aws_hls4ml(
 //place output into axi stream output
     for (int i = 0; i < STREAMSIZE; i++) {
 #pragma HLS LOOP UNROLL
-        for (int j = 0; j < N_OUTPUTS; j++) {
+        for (int j = 0; j < DATA_SIZE_OUT; j++) {
 #pragma HLS LOOP UNROLL
-            out[i*N_OUTPUTS+j] = (data_t)out_buf[i][j];
+            out[i*DATA_SIZE_OUT+j] = (data_t)out_buf[i][j];
         }
     }
 

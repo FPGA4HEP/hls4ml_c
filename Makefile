@@ -25,7 +25,7 @@ host_LDFLAGS=$(opencl_LDFLAGS) -I$(XILINX_VIVADO)/include/ -I$(XILINX_SDACCEL)/i
 
 # aws_hls4ml Kernels
 aws_hls4ml_SRCS=./src/aws_hls4ml.cpp $(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/$(HLS4ML_NAME).cpp
-aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=$(HLS4ML_NAME) -DIS_$(HLS4ML_PROJ_TYPE) -I./src/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/weights -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/nnet_utils/ --xp "prop:solution.hls_pre_tcl=./config.tcl"
+aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=$(HLS4ML_NAME) -DIS_$(HLS4ML_PROJ_TYPE) -I./src/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/weights -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/nnet_utils/ --xp "prop:solution.hls_pre_tcl=./config.tcl" --xp "prop:kernel.aws_hls4ml.kernel_flags=-std=c++11"
 
 EXES=host
 XCLBINS=aws_hls4ml
