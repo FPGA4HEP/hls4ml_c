@@ -1,4 +1,3 @@
-#COMMON_REPO := ../../../
 COMMON_REPO := /home/centos/src/project_data/aws-fpga/SDAccel/examples/xilinx/
 
 #--v--v--
@@ -20,12 +19,12 @@ include $(COMMON_REPO)/libs/opencl/opencl.mk
 # Host Application
 host_SRCS=./src/host.cpp $(xcl2_SRCS)
 host_HDRS=$(xcl2_HDRS)
-host_CXXFLAGS=-I./src/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/nnet_utils/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/ $(xcl2_CXXFLAGS) $(opencl_CXXFLAGS) -DIS_$(HLS4ML_PROJ_TYPE) -DHLS4ML_DATA_DIR=$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/tb_data/ -std=c++11
+host_CXXFLAGS=-I./src/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/nnet_utils/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/ $(xcl2_CXXFLAGS) $(opencl_CXXFLAGS) -DIS_$(HLS4ML_PROJ_TYPE) -DHLS4ML_DATA_DIR=$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/tb_data/ -DWEIGHTS_DIR=$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/weights -std=c++11 
 host_LDFLAGS=$(opencl_LDFLAGS) -I$(XILINX_VIVADO)/include/ -I$(XILINX_SDACCEL)/include/ -Wno-unknown-pragmas
 
 # aws_hls4ml Kernels
 aws_hls4ml_SRCS=./src/aws_hls4ml.cpp $(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/$(HLS4ML_NAME).cpp
-aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=$(HLS4ML_NAME) -DIS_$(HLS4ML_PROJ_TYPE) -I./src/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/weights -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/nnet_utils/ --xp "prop:solution.hls_pre_tcl=./config.tcl" --xp "prop:kernel.aws_hls4ml.kernel_flags=-std=c++11"
+aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=$(HLS4ML_NAME) -DIS_$(HLS4ML_PROJ_TYPE) -DWEIGHTS_DIR=$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/weights -I./src/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/ -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/weights -I$(HLS4ML_BASE)/example-models/$(HLS4ML_PROJECT)/firmware/nnet_utils/ --xp "prop:solution.hls_pre_tcl=./config.tcl" --xp "prop:kernel.aws_hls4ml.kernel_flags=-std=c++11"
 
 EXES=host
 XCLBINS=aws_hls4ml
