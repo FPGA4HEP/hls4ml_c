@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 
     // find_binary_file() is a utility API which will search the xclbin file for
     // targeted mode (sw_emu/hw_emu/hw) and for targeted platforms.
-    std::string binaryFile = xcl::find_binary_file(device_name,"aws_hls4ml");
+    std::string binaryFile = xcl::find_binary_file(device_name,"alveo_hls4ml");
 
     // import_binary_file() ia a utility API which will load the binaryFile
     // and will return Binaries.
@@ -102,17 +102,19 @@ int main(int argc, char** argv)
     inBufVec.push_back(buffer_in);
     outBufVec.push_back(buffer_output);
 
-    cl::Kernel krnl_aws_hls4ml(program,"aws_hls4ml");
+    cl::Kernel krnl_alveo_hls4ml(program,"alveo_hls4ml");
 
     int narg = 0;
-    krnl_aws_hls4ml.setArg(narg++, buffer_in);
-    krnl_aws_hls4ml.setArg(narg++, buffer_output);
+    krnl_alveo_hls4ml.setArg(narg++, buffer_in);
+    krnl_alveo_hls4ml.setArg(narg++, buffer_output);
 
     //load input data from text file
     std::ifstream fin(datadir+"/tb_input_features.dat");
     //load predictions from text file
     std::ifstream fpr(datadir+"/tb_output_predictions.dat");
   
+    std::cout << datadir+"/tb_output_predictions.dat" << std::endl;
+
     std::string iline;
     std::string pline;
     int e = 0;
@@ -123,6 +125,7 @@ int main(int argc, char** argv)
         valid_data = false;
         //flag for success/failure of finding data files
     }
+    std::cout << iline << std::endl;
     std::ofstream fout;
     fout.open("tb_output_data.dat");
 
@@ -179,7 +182,7 @@ int main(int argc, char** argv)
         // Launch the Kernel
         // For HLS kernels global and local size is always (1,1,1). So, it is recommended
         // to always use enqueueTask() for invoking HLS kernel
-        q.enqueueTask(krnl_aws_hls4ml);
+        q.enqueueTask(krnl_alveo_hls4ml);
         // Copy Result from Device Global Memory to Host Local Memory
         q.enqueueMigrateMemObjects(outBufVec,CL_MIGRATE_MEM_OBJECT_HOST);
         // Check for any errors from the command queue

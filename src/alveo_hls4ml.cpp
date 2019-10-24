@@ -46,7 +46,7 @@ Description:
         out   (output)    --> Output Vector
    */
 extern "C" {
-void aws_hls4ml(
+void alveo_hls4ml(
         const data_t *in, // Read-Only Vector
         data_t *out       // Output Result
         )
