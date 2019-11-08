@@ -1,7 +1,7 @@
 #include "ap_fixed.h"
 #include <parameters.h>
 
-#define STREAMSIZE 10
+#define STREAMSIZE 16384
 //how many consecutive sets of inputs to run over per kernel execution
 
 #ifdef IS_DENSE
