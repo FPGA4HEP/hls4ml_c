@@ -18,37 +18,45 @@
 //
 #include <iostream>
 
-#include "parameters.h"
 #include "ereg_v1.h"
 
-#include "nnet_utils/nnet_layer.h"
-#include "nnet_utils/nnet_conv.h"
-#include "nnet_utils/nnet_activation.h"
-
 //hls-fpga-machine-learning insert weights
-#include "weights/w1.h"
-#include "weights/b1.h"
 #include "weights/w2.h"
 #include "weights/b2.h"
-#include "weights/w3.h"
-#include "weights/b3.h"
+#include "weights/w4.h"
+#include "weights/b4.h"
+#include "weights/w6.h"
+#include "weights/b6.h"
 
 void ereg_v1(
-		  input_t data[N_INPUTS],
-		  result_t res[N_OUTPUTS],
-		  unsigned short &const_size_in,
-		  unsigned short &const_size_out)
-{
+    input_t input[N_INPUT_1_1],
+    layer6_t layer6_out[N_LAYER_6],
+    unsigned short &const_size_in_1,
+    unsigned short &const_size_out_1
+) {
 
     //hls-fpga-machine-learning insert IO
-    #pragma HLS ARRAY_RESHAPE variable=data complete dim=0 
-    #pragma HLS ARRAY_RESHAPE variable=res complete dim=0 
-    #pragma HLS INTERFACE ap_vld port=data,res 
+    #pragma HLS ARRAY_RESHAPE variable=input complete dim=0 
+    #pragma HLS ARRAY_RESHAPE variable=layer6_out complete dim=0 
+    #pragma HLS INTERFACE ap_vld port=input,layer6_out 
     #pragma HLS PIPELINE 
 
+    const_size_in_1 = N_INPUT_1_1;
+    const_size_out_1 = N_LAYER_6;
 
-    const_size_in   = N_INPUTS;
-    const_size_out  = N_OUTPUTS;
+#ifndef __SYNTHESIS__
+    static bool loaded_weights = false;
+    if (!loaded_weights) {
+        //hls-fpga-machine-learning insert load weights
+        nnet::load_weights_from_txt<model_default_t, 165>(w2, "w2.txt");
+        nnet::load_weights_from_txt<model_default_t, 15>(b2, "b2.txt");
+        nnet::load_weights_from_txt<model_default_t, 75>(w4, "w4.txt");
+        nnet::load_weights_from_txt<model_default_t, 5>(b4, "b4.txt");
+        nnet::load_weights_from_txt<model_default_t, 5>(w6, "w6.txt");
+        nnet::load_weights_from_txt<model_default_t, 1>(b6, "b6.txt");
+        loaded_weights = true;
+    }
+#endif
 
     // ****************************************
     // NETWORK INSTANTIATION
@@ -56,24 +64,14 @@ void ereg_v1(
 
     //hls-fpga-machine-learning insert layers
 
-    layer1_t layer1_out[N_LAYER_1];
-    #pragma HLS ARRAY_PARTITION variable=layer1_out complete dim=0
-    layer1_t logits1[N_LAYER_1];
-    #pragma HLS ARRAY_PARTITION variable=logits1 complete dim=0
-    nnet::compute_layer<input_t, layer1_t, config1>(data, logits1, w1, b1);
-    nnet::linear<layer1_t, layer1_t, linear_config1>(logits1, layer1_out);
-
     layer2_t layer2_out[N_LAYER_2];
     #pragma HLS ARRAY_PARTITION variable=layer2_out complete dim=0
-    layer2_t logits2[N_LAYER_2];
-    #pragma HLS ARRAY_PARTITION variable=logits2 complete dim=0
-    nnet::compute_layer<layer1_t, layer2_t, config2>(layer1_out, logits2, w2, b2);
-    nnet::linear<layer2_t, layer2_t, linear_config2>(logits2, layer2_out);
+    nnet::dense_latency<input_t, layer2_t, config2>(input, layer2_out, w2, b2);
 
-    result_t logits3[N_OUTPUTS];
-    #pragma HLS ARRAY_PARTITION variable=logits3 complete dim=0
-    nnet::compute_layer<layer2_t, result_t, config3>(layer2_out, logits3, w3, b3);
-    nnet::linear<result_t, result_t, linear_config3>(logits3, res);
+    layer4_t layer4_out[N_LAYER_4];
+    #pragma HLS ARRAY_PARTITION variable=layer4_out complete dim=0
+    nnet::dense_latency<layer2_t, layer4_t, config4>(layer2_out, layer4_out, w4, b4);
 
+    nnet::dense_latency<layer4_t, layer6_t, config6>(layer4_out, layer6_out, w6, b6);
 
 }
