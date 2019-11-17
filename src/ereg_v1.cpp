@@ -36,8 +36,8 @@ void ereg_v1(
 ) {
 
     //hls-fpga-machine-learning insert IO
-    #pragma HLS ARRAY_RESHAPE variable=input complete dim=0 
-    #pragma HLS ARRAY_RESHAPE variable=layer6_out complete dim=0 
+    //#pragma HLS ARRAY_RESHAPE variable=input complete dim=0 
+    //#pragma HLS ARRAY_RESHAPE variable=layer6_out complete dim=0 
     #pragma HLS INTERFACE ap_vld port=input,layer6_out 
     #pragma HLS PIPELINE 
 
