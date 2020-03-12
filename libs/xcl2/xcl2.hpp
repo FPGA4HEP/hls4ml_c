@@ -76,44 +76,30 @@ struct aligned_allocator
 };
 
 namespace xcl {
-std::vector<cl::Device> get_xil_devices();
-std::vector<cl::Device> get_devices(const std::string& vendor_name);
-/* find_xclbin_file
- *
- *
- * Description:
- *   Find precompiled program (as commonly created by the Xilinx OpenCL
- *   flow). Using search path below.
- *
- *   Search Path:
- *      $XCL_BINDIR/<name>.<target>.<device>.xclbin
- *      $XCL_BINDIR/<name>.<target>.<device_versionless>.xclbin
- *      $XCL_BINDIR/binary_container_1.xclbin
- *      $XCL_BINDIR/<name>.xclbin
- *      xclbin/<name>.<target>.<device>.xclbin
- *      xclbin/<name>.<target>.<device_versionless>.xclbin
- *      xclbin/binary_container_1.xclbin
- *      xclbin/<name>.xclbin
- *      ../<name>.<target>.<device>.xclbin
- *      ../<name>.<target>.<device_versionless>.xclbin
- *      ../binary_container_1.xclbin
- *      ../<name>.xclbin
- *      ./<name>.<target>.<device>.xclbin
- *      ./<name>.<target>.<device_versionless>.xclbin
- *      ./binary_container_1.xclbin
- *      ./<name>.xclbin
- *
- * Inputs:
- *   _device_name - Targeted Device name
- *   xclbin_name - base name of the xclbin to import.
- *
- * Returns:
- *   An opencl program Binaries object that was created from xclbin_name file.
- */
-std::string find_binary_file(const std::string& _device_name, const std::string& xclbin_name);
-cl::Program::Binaries import_binary_file(std::string xclbin_file_name); 
-bool is_emulation () ;
-bool is_hw_emulation () ;
-bool is_xpr_device (const char *device_name);
-
+  std::vector<cl::Device> get_xil_devices();
+  std::vector<cl::Device> get_devices(const std::string& vendor_name);
+  std::vector<unsigned char> read_binary_file(const std::string &xclbin_file_name); 
+  bool is_emulation ();
+  bool is_hw_emulation ();
+  bool is_xpr_device (const char *device_name);
+    class Stream{
+      public:
+        static decltype(&clCreateStream) createStream;
+        static decltype(&clReleaseStream) releaseStream;
+        static decltype(&clReadStream) readStream;
+        static decltype(&clWriteStream) writeStream;
+        static decltype(&clPollStreams) pollStreams;
+        static void init(const cl_platform_id& platform) {
+            void *bar = clGetExtensionFunctionAddressForPlatform(platform, "clCreateStream");
+            createStream = (decltype(&clCreateStream))bar;
+            bar = clGetExtensionFunctionAddressForPlatform(platform, "clReleaseStream");
+            releaseStream = (decltype(&clReleaseStream))bar;
+            bar = clGetExtensionFunctionAddressForPlatform(platform, "clReadStream");
+            readStream = (decltype(&clReadStream))bar;
+            bar = clGetExtensionFunctionAddressForPlatform(platform, "clWriteStream");
+            writeStream = (decltype(&clWriteStream))bar;
+            bar = clGetExtensionFunctionAddressForPlatform(platform, "clPollStreams");
+            pollStreams = (decltype(&clPollStreams))bar;
+        }
+    };
 }

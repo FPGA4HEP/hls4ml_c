@@ -46,8 +46,10 @@ int main(int argc, char** argv)
 
     int nevents = 1;
     std::string datadir = STRINGIFY(HLS4ML_DATA_DIR);
-    if (argc > 1) nevents = atoi(argv[1]);
-    if (argc > 2) datadir = argv[2];
+    std::string xclbinFilename = "";
+    if (argc > 1) xclbinFilename = argv[1];
+    if (argc > 2) nevents = atoi(argv[2]);
+    if (argc > 3) datadir = argv[3];
     std::cout << "Will run " << nevents << " time(s), using " << datadir << " to get input features and output predictions (tb_input_features.dat and tb_output_predictions.dat)" << std::endl;
 
     size_t vector_size_in_bytes = sizeof(data_t) * DATA_SIZE_IN * STREAMSIZE;
@@ -80,13 +82,19 @@ int main(int argc, char** argv)
     std::string device_name = device.getInfo<CL_DEVICE_NAME>(); 
     std::cout << "Found Device=" << device_name.c_str() << std::endl;
 
-    // find_binary_file() is a utility API which will search the xclbin file for
-    // targeted mode (sw_emu/hw_emu/hw) and for targeted platforms.
-    std::string binaryFile = xcl::find_binary_file(device_name,"alveo_hls4ml");
+    cl::Program::Binaries bins;
+    // Load xclbin
+    std::cout << "Loading: '" << xclbinFilename << "'\n";
+    std::ifstream bin_file(xclbinFilename, std::ifstream::binary);
+    bin_file.seekg (0, bin_file.end);
+    unsigned nb = bin_file.tellg();
+    bin_file.seekg (0, bin_file.beg);
+    char *buf = new char [nb];
+    bin_file.read(buf, nb);
+      
+    // Creating Program from Binary File
+    bins.push_back({buf,nb});
 
-    // import_binary_file() ia a utility API which will load the binaryFile
-    // and will return Binaries.
-    cl::Program::Binaries bins = xcl::import_binary_file(binaryFile);
     devices.resize(1);
     cl::Program program(context, devices, bins);
 
@@ -102,11 +110,11 @@ int main(int argc, char** argv)
     inBufVec.push_back(buffer_in);
     outBufVec.push_back(buffer_output);
 
-    cl::Kernel krnl_alveo_hls4ml(program,"alveo_hls4ml");
+    cl::Kernel krnl_aws_hls4ml(program,"aws_hls4ml");
 
     int narg = 0;
-    krnl_alveo_hls4ml.setArg(narg++, buffer_in);
-    krnl_alveo_hls4ml.setArg(narg++, buffer_output);
+    krnl_aws_hls4ml.setArg(narg++, buffer_in);
+    krnl_aws_hls4ml.setArg(narg++, buffer_output);
 
     //load input data from text file
     std::ifstream fin(datadir+"/tb_input_features.dat");
@@ -179,7 +187,7 @@ int main(int argc, char** argv)
         // Launch the Kernel
         // For HLS kernels global and local size is always (1,1,1). So, it is recommended
         // to always use enqueueTask() for invoking HLS kernel
-        q.enqueueTask(krnl_alveo_hls4ml);
+        q.enqueueTask(krnl_aws_hls4ml);
         // Copy Result from Device Global Memory to Host Local Memory
         q.enqueueMigrateMemObjects(outBufVec,CL_MIGRATE_MEM_OBJECT_HOST);
         // Check for any errors from the command queue

@@ -38,9 +38,9 @@
 
 void ereg_v1(
     input_t input[N_INPUT_1_1],
-    layer11_t layer11_out[N_LAYER_11],
-    unsigned short &const_size_in_1,
-    unsigned short &const_size_out_1
+    layer11_t layer11_out[N_LAYER_11]
+//    unsigned short &const_size_in_1,
+//    unsigned short &const_size_out_1
 ) {
 
     //hls-fpga-machine-learning insert IO
@@ -49,8 +49,6 @@ void ereg_v1(
     #pragma HLS INTERFACE ap_vld port=input,layer11_out 
     #pragma HLS PIPELINE 
 
-    const_size_in_1 = N_INPUT_1_1;
-    const_size_out_1 = N_LAYER_11;
 
 #ifndef __SYNTHESIS__
     static bool loaded_weights = false;

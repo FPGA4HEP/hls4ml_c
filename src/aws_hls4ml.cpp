@@ -64,53 +64,42 @@ void aws_hls4ml(
 #pragma HLS INTERFACE s_axilite port=in   bundle=control
 #pragma HLS INTERFACE s_axilite port=out  bundle=control
 #pragma HLS INTERFACE s_axilite port=return bundle=control
-
-    unsigned short insize, outsize;
-//necessary for hls4ml kernel, not used
-
-#ifdef IS_DENSE
+  //#pragma HLS dataflow
+    //unsigned short insize, outsize;
+    //necessary for hls4ml kernel, not used
+    
     input_t in_buf[STREAMSIZE][DATA_SIZE_IN];
-#endif
-#ifdef IS_CONV1D
-    input_t in_buf[STREAMSIZE][Y_INPUTS][N_CHAN];
-#endif
     layer11_t out_buf[STREAMSIZE][DATA_SIZE_OUT];
-//these will get partitioned properly in the hls4ml code
+    //these will get partitioned properly in the hls4ml code
 
-//getting data from axi stream and formatting properly
+    #pragma HLS ARRAY_PARTITION variable=in_buf complete dim=2
+    #pragma HLS ARRAY_PARTITION variable=out_buf complete dim=2 
+    //#pragma HLS ARRAY_RESHAPE   variable=in_buf block factor=11
+    //#pragma HLS ARRAY_RESHAPE   variable=out_buf block factor=11
+    
+    //getting data from axi stream and formatting properly
     for (int i = 0; i < STREAMSIZE; i++) {
-#pragma HLS LOOP UNROLL
-    #ifdef IS_DENSE
-        for (int j = 0; j < DATA_SIZE_IN; j++) {
-#pragma HLS LOOP UNROLL
-            in_buf[i][j] = (input_t)in[i*DATA_SIZE_IN+j];
-        }
-    #endif
-    #ifdef IS_CONV1D
-        for (int j = 0; j < Y_INPUTS; j++) {
-#pragma HLS LOOP UNROLL
-            for (int k = 0; k < N_CHAN; k++) {
-#pragma HLS LOOP UNROLL
-                in_buf[i][j] = (input_t)in[i*Y_INPUTS*N_CHAN+j*N_CHAN+k];
-            }
-        }
-    #endif
+//#pragma HLS PIPELINE II=11 rewind
+      for (int j = 0; j < DATA_SIZE_IN; j++) {
+//#pragma HLS LOOP UNROLL
+	in_buf[i][j] = (input_t)in[i*DATA_SIZE_IN+j];
+      }
     }
 
-//run inference
+    //run inference
     for (int i = 0; i < STREAMSIZE; i++) {
-#pragma HLS dataflow
-        hls4ml: MYPROJ(in_buf[i],out_buf[i],insize,outsize);
+//#pragma HLS PIPELINE II=1 rewind
+#pragma HLS DATAFLOW
+      hls4ml: MYPROJ(in_buf[i],out_buf[i]);//,insize,outsize);
     }
 
-//place output into axi stream output
+    //place output into axi stream output
     for (int i = 0; i < STREAMSIZE; i++) {
-#pragma HLS LOOP UNROLL
-        for (int j = 0; j < DATA_SIZE_OUT; j++) {
-#pragma HLS LOOP UNROLL
-            out[i*DATA_SIZE_OUT+j] = (data_t)out_buf[i][j];
-        }
+//#pragma HLS PIPELINE II=1 rewind
+      for (int j = 0; j < DATA_SIZE_OUT; j++) {
+//#pragma HLS LOOP UNROLL
+	out[i*DATA_SIZE_OUT+j] = (data_t)out_buf[i][j];
+      }
     }
-
 }
 }
