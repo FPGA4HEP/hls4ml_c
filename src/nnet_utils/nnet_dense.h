@@ -23,7 +23,6 @@
 #include "nnet_common.h"
 #include "nnet_helpers.h"
 #include "hls_stream.h"
-//#include <type_traits>
 #include <math.h>
 
 namespace nnet {

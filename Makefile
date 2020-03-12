@@ -3,9 +3,7 @@ COMMON_REPO := /home/centos/src/project_data/aws-fpga/SDAccel/examples/xilinx/
 
 #--v--v--
 #these need to be set by the user for their specific installation
-HLS4ML_BASE := /home/centos/fpga4hep/hls4ml
-HLS4ML_PROJECT := my-hls-test-3layer
-HLS4ML_NAME := myproject
+HLS4ML_NAME := ereg_v1
 HLS4ML_PROJ_TYPE := DENSE
 #possible options are: DENSE, CONV1D
 #--^--^--
@@ -25,7 +23,7 @@ host_LDFLAGS=$(opencl_LDFLAGS) -I$(XILINX_VIVADO)/include/ -I$(XILINX_SDACCEL)/i
 
 # aws_hls4ml Kernels
 aws_hls4ml_SRCS=./src/aws_hls4ml.cpp src/ereg_v1.cpp
-aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=ereg_v1 -DIS_$(HLS4ML_PROJ_TYPE) -I./src/ -I./src/weights -I./src/nnet_utils/ --xp "prop:solution.hls_pre_tcl=./config.tcl"
+aws_hls4ml_CLFLAGS=-k aws_hls4ml -DMYPROJ=ereg_v1 -DIS_$(HLS4ML_PROJ_TYPE) -I./src/ -I./src/weights -I./src/nnet_utils/ --xp "prop:solution.hls_pre_tcl=./config.tcl" --xp "prop:kernel.aws_hls4ml.kernel_flags=-std=c++11"
 
 EXES=host
 XCLBINS=aws_hls4ml
