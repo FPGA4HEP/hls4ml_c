@@ -20,7 +20,6 @@
 #ifndef NNET_HELPERS_H
 #define NNET_HELPERS_H
 
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -31,18 +30,12 @@ namespace nnet {
 
 #ifndef __SYNTHESIS__
 
-#define STRINGIFY2(var) #var
-#define STRINGIFY(var) STRINGIFY2(var)
-
-#ifndef WEIGHTS_DIR
-#define WEIGHTS_DIR weights
-#endif
+#define WEIGHTS_DIR "weights"
 
 template<class T, size_t SIZE>
 void load_weights_from_txt(T *w, const char* fname) {
 
-    std::string weightsdir = STRINGIFY(WEIGHTS_DIR);
-    std::string full_path = weightsdir + "/" + std::string(fname);
+    std::string full_path = std::string(WEIGHTS_DIR) + "/" + std::string(fname);
     std::ifstream infile(full_path.c_str(), std::ios::binary);
 
     if (infile.fail()) {
@@ -71,8 +64,7 @@ void load_weights_from_txt(T *w, const char* fname) {
 template<class T, size_t SIZE>
 void load_compressed_weights_from_txt(T *w, const char* fname) {
 
-    std::string weightsdir = STRINGIFY(WEIGHTS_DIR);
-    std::string full_path = weightsdir + "/" + std::string(fname);
+    std::string full_path = std::string(WEIGHTS_DIR) + "/" + std::string(fname);
     std::ifstream infile(full_path.c_str(), std::ios::binary);
 
     if (infile.fail()) {
