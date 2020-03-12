@@ -1,5 +1,4 @@
-#COMMON_REPO := ../../../
-COMMON_REPO := /home/centos/src/project_data/aws-fpga/SDAccel/examples/xilinx/
+COMMON_REPO := ./
 
 #--v--v--
 #these need to be set by the user for their specific installation
