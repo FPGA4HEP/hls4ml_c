@@ -74,7 +74,7 @@ void aws_hls4ml(
 #ifdef IS_CONV1D
     input_t in_buf[STREAMSIZE][Y_INPUTS][N_CHAN];
 #endif
-    result_t out_buf[STREAMSIZE][DATA_SIZE_OUT];
+    layer11_t out_buf[STREAMSIZE][DATA_SIZE_OUT];
 //these will get partitioned properly in the hls4ml code
 
 //getting data from axi stream and formatting properly
