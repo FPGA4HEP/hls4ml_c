@@ -52,22 +52,22 @@ int main(int argc, char** argv)
     if (argc > 3) datadir = argv[3];
     std::cout << "Will run " << nevents << " time(s), using " << datadir << " to get input features and output predictions (tb_input_features.dat and tb_output_predictions.dat)" << std::endl;
 
-    size_t vector_size_in_bytes = sizeof(data_t) * DATA_SIZE_IN * STREAMSIZE;
-    size_t vector_size_out_bytes = sizeof(data_t) * DATA_SIZE_OUT * STREAMSIZE;
+    size_t vector_size_in_bytes = sizeof(bigdata_t) * STREAMSIZE;
+    size_t vector_size_out_bytes = sizeof(bigdata_t) * COMPSTREAMSIZE;
     // Allocate Memory in Host Memory
     // When creating a buffer with user pointer (CL_MEM_USE_HOST_PTR), under the hood user ptr 
     // is used if it is properly aligned. when not aligned, runtime had no choice but to create
     // its own host side buffer. So it is recommended to use this allocator if user wish to
     // create buffer using CL_MEM_USE_HOST_PTR to align user buffer to page boundary. It will 
     // ensure that user buffer is used when user create Buffer/Mem object with CL_MEM_USE_HOST_PTR 
-    std::vector<data_t,aligned_allocator<data_t>> source_in(DATA_SIZE_IN*STREAMSIZE);
-    std::vector<data_t,aligned_allocator<data_t>> source_hw_results(DATA_SIZE_OUT*STREAMSIZE);
+    std::vector<bigdata_t,aligned_allocator<bigdata_t>> source_in(STREAMSIZE);
+    std::vector<bigdata_t,aligned_allocator<bigdata_t>> source_hw_results(COMPSTREAMSIZE);
 
     //initialize
-    for(int j = 0 ; j < DATA_SIZE_IN*STREAMSIZE ; j++){
+    for(int j = 0 ; j < STREAMSIZE ; j++){
         source_in[j] = 0;
     }
-    for(int j = 0 ; j < DATA_SIZE_OUT*STREAMSIZE ; j++){
+    for(int j = 0 ; j < COMPSTREAMSIZE ; j++){
         source_hw_results[j] = 0;
     }
 
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     bin_file.seekg (0, bin_file.beg);
     char *buf = new char [nb];
     bin_file.read(buf, nb);
-      
+
     // Creating Program from Binary File
     bins.push_back({buf,nb});
 
@@ -160,11 +160,13 @@ int main(int argc, char** argv)
                         current=strtok(NULL," ");
                     }
                     for (int j = 0; j < DATA_SIZE_IN; j++) {
-                        source_in[istream*DATA_SIZE_IN+j] = (data_t)in[j];
+		      source_in[istream].range(16*(j+1)-1,16*j) =  ((data_t)in[j]).range(15,0);
                     }
-                    for(int j = 0 ; j < DATA_SIZE_OUT ; j++){
-                        source_hw_results[istream*DATA_SIZE_OUT+j] = 0;
-                    }
+		    //data_t test;
+		    //test.range(15,0) = source_in[istream].range(16*18-1,16*17);
+		    //std::cout << "input check ===> " << source_in[istream] << " -- " <<  source_in[istream].range(15,0) << " -- " << test << " -- " << ((data_t)in[10]) << std::endl;
+		    if(istream % COMPRESSION == 0) source_hw_results[istream/COMPRESSION] = 0;
+                    
                 } else {
                     hit_end = true;
                 }
@@ -172,12 +174,10 @@ int main(int argc, char** argv)
             else {
             // Create the test data if no data files found or if end of files has been reached
                 for(int j = 0 ; j < DATA_SIZE_IN; j++){
-                    source_in[istream*DATA_SIZE_IN+j] = (data_t)(12.34*(j+DATA_SIZE_IN*STREAMSIZE*(i+1)));
-                    //this is just a random number to produce dummy input data
+  		  source_in[istream].range(16*(j+1)-1,16*j) = (data_t)(12.34*(j+DATA_SIZE_IN*STREAMSIZE*(i+1)));
+                  //this is just a random number to produce dummy input data
                 }
-                for(int j = 0 ; j < DATA_SIZE_OUT*STREAMSIZE ; j++){
-                    source_hw_results[j] = 0;
-                }
+		if(istream % COMPRESSION == 0) source_hw_results[istream/COMPRESSION] = 0;
             }
         }
     
@@ -205,12 +205,14 @@ int main(int argc, char** argv)
             std::cout << std::endl;
         }
         std::cout<<"Quantized predictions: \n";
-        for (int j = 0 ; j < STREAMSIZE ; j++){
-            for (int k = 0 ; k < DATA_SIZE_OUT ; k++){
-    	        std::cout << source_hw_results[j*DATA_SIZE_OUT + k] << " \t";
-                fout << source_hw_results[j*DATA_SIZE_OUT + k] << " "; 
+        for (int j = 0 ; j < COMPSTREAMSIZE ; j++){
+            for (int k = 0 ; k < COMPRESSION ; k++){
+	      data_t tmp;
+	      tmp.range(15,0) = source_hw_results[j].range((k+1)*16-1,k*16);
+	      std::cout << tmp  << " \n";
+              fout << tmp  << " \n "; 
             }
-            fout << "\n";
+            //fout << "\n";
         }
         std::cout << std::endl;
         std::cout<<"---- END EVENT "<<i+1<<" ----"<<std::endl;

@@ -47,8 +47,8 @@ Description:
    */
 extern "C" {
 void aws_hls4ml(
-        const data_t *in, // Read-Only Vector
-        data_t *out       // Output Result
+        const bigdata_t *in, // Read-Only Vector
+        bigdata_t *out       // Output Result
         )
 {
 // SDAccel kernel must have one and only one s_axilite interface which will be used by host application to configure the kernel.
@@ -59,47 +59,55 @@ void aws_hls4ml(
 // accessing global memory through this interface.
 // Multiple interfaces can also be created based on the requirements. For example when multiple memory accessing arguments need access to
 // global memory simultaneously, user can create multiple master interfaces and can connect to different arguments.
-#pragma HLS INTERFACE m_axi port=in  offset=slave bundle=gmem
-#pragma HLS INTERFACE m_axi port=out offset=slave bundle=gmem
+#pragma HLS INTERFACE m_axi port=in  offset=slave bundle=gmem0
+#pragma HLS INTERFACE m_axi port=out offset=slave bundle=gmem1
 #pragma HLS INTERFACE s_axilite port=in   bundle=control
 #pragma HLS INTERFACE s_axilite port=out  bundle=control
 #pragma HLS INTERFACE s_axilite port=return bundle=control
-  //#pragma HLS dataflow
+     #pragma HLS DATAFLOW
     //unsigned short insize, outsize;
     //necessary for hls4ml kernel, not used
     
+    bigdata_t in_bigbuf[STREAMSIZE];
+    bigdata_t out_bigbuf[COMPSTREAMSIZE];
+
     input_t in_buf[STREAMSIZE][DATA_SIZE_IN];
     layer11_t out_buf[STREAMSIZE][DATA_SIZE_OUT];
     //these will get partitioned properly in the hls4ml code
 
     #pragma HLS ARRAY_PARTITION variable=in_buf complete dim=2
     #pragma HLS ARRAY_PARTITION variable=out_buf complete dim=2 
-    //#pragma HLS ARRAY_RESHAPE   variable=in_buf block factor=11
-    //#pragma HLS ARRAY_RESHAPE   variable=out_buf block factor=11
-    
-    //getting data from axi stream and formatting properly
+
+    //getting data from DDR
     for (int i = 0; i < STREAMSIZE; i++) {
-//#pragma HLS PIPELINE II=11 rewind
-      for (int j = 0; j < DATA_SIZE_IN; j++) {
-//#pragma HLS LOOP UNROLL
-	in_buf[i][j] = (input_t)in[i*DATA_SIZE_IN+j];
+      in_bigbuf[i] = in[i];
+    }
+    for (int i = 0; i < STREAMSIZE; i++) {
+      #pragma HLS PIPELINE
+      for(int i0 = 0; i0 < DATA_SIZE_IN; i0++) { 
+         #pragma HLS UNROLL
+	in_buf[i][i0].range(15,0) = in_bigbuf[i].range(16*(i0+1)-1,16*i0);
       }
     }
-
     //run inference
     for (int i = 0; i < STREAMSIZE; i++) {
-//#pragma HLS PIPELINE II=1 rewind
-#pragma HLS DATAFLOW
+      #pragma HLS DATAFLOW
       hls4ml: MYPROJ(in_buf[i],out_buf[i]);//,insize,outsize);
     }
-
-    //place output into axi stream output
-    for (int i = 0; i < STREAMSIZE; i++) {
-//#pragma HLS PIPELINE II=1 rewind
-      for (int j = 0; j < DATA_SIZE_OUT; j++) {
-//#pragma HLS LOOP UNROLL
-	out[i*DATA_SIZE_OUT+j] = (data_t)out_buf[i][j];
+    for (int i = 0; i < COMPSTREAMSIZE; i++) {
+      #pragma HLS PIPELINE
+      bigdata_t tmp;
+      for(int i1 = 0; i1 < COMPRESSION;i1++) { 
+       for(int i0 = 0; i0 < DATA_SIZE_OUT; i0++) { 
+        #pragma HLS UNROLL
+        tmp((i1+1)*16-1,(i1)*16) = out_buf[i*COMPRESSION+i1][i0].range(15,0);
+       }
       }
+      out_bigbuf[i] = tmp;
     }
-}
+    //place output into DDR
+    for (int i = 0; i < COMPSTREAMSIZE; i++) {
+      out[i] = out_bigbuf[i];
+    }
+  }
 }
